@@ -50,3 +50,63 @@ Using a different version of a Gem in irb:
 
     $ irb
     >> gem "bundler", "1.17.3"
+
+Rounding floats:
+
+    $ irb
+    >> num = 10.1234
+    >> puts "#{num} rounded is #{"%.2f" % num}"
+    10.12
+
+
+## Objects
+
+Attaching methods to objects is a fundamental capability in Ruby:
+
+```ruby
+obj = Object.new
+def obj.double(num)
+  return num*2
+end
+obj.double(4)  # returns 8
+
+```
+
+* `obj.foo` is an expression to send the message `foo` to the object `obj`
+* Equivalent statement: method `foo` is called on object `obj`
+* "formal parameters" are the variables listed in the method definition
+* "arguments" are the values supplied by callers
+
+In Ruby: `foo.bar` is the same as `foo.send('bar')` (or `foo.__send__('bar')`)
+
+Using parenthesis in Ruby? Yes! **When in doubt, use parens**. Exceptions:
+* Empty params or args
+* Call to `puts`
+
+To list object methods:
+
+    >> puts obj.methods.sort
+
+Arguments:
+* `(*a)` accepts 0 or more args, `(a, b, *c)` accepts 2 or more. `a` and `c`, respectively, will be arrays.
+* `(a, *b, c)` is possible. `(1, 2, 3, 4)` results in `a=1`, `b=[2,3]` and `c=4`. Pretty neat.
+* When default values are in the mix `(a=1, *b, c)`, they win over the generic arg. A call with `(11, 22)` will result in `a=11`, `b=[]`, `c=22`.
+* What can't be done: `(x, *y, z=1)` or `(*x, *y)`
+
+In Ruby, almost every variable hold a reference to their values (even string vars!). Exceptions are variable holding "immediate values". They are:
+* symbols
+* numbers
+* `true`, `false`, `nil`
+
+To workaround the fact that everything is passed by reference: `.clone`/`.dup`
+gives a fresh copy of the object, and `.freeze` prevents any further
+modification to it. Note: `.clone` keeps frozen objects frozen. `.dup` doesn't.
+
+Warning `["one", "two", "three"].freeze` does not freeze the items (strings)
+inside of the array!
+```ruby
+>> arr = ["one", "two", "three"].freeze
+>> arr[0].replace("pwnd")
+>> arr
+=> ["pwnd", "two", "three"]
+```
