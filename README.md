@@ -110,3 +110,91 @@ inside of the array!
 >> arr
 => ["pwnd", "two", "three"]
 ```
+
+## Classes
+
+It's possible to reopen classes:
+```ruby
+class C
+  def x
+  end
+end
+
+class C
+  def y
+  end
+end
+```
+
+Constructors are called with `.new`, and declared with `def
+initialize(...args...)`.
+
+Syntactic sugar on top of setters:
+```ruby
+class Computer
+  def brand=(brand)
+    @brand = brand
+  end
+end
+
+computer = Computer.new
+computer.brand=('Apple')
+computer.brand = 'Apple' # Equivalent!
+```
+
+Careful however, the syntactic sugar version returns whatever is on the
+right-hand side instead of what the setter method returns.
+
+Other shortcut: `attr_*` methods:
+```ruby
+class Computer
+  attr_writer :brand
+  attr_reader :owner
+  attr_accessor :price
+end
+```
+
+`Object` is the base class of all Ruby objects. It has 58 methods implemented.
+`BasicObject`, on the other hand, only has 8. `BasicObject` is very rarely used
+however.
+
+In Ruby classes are objects as well:
+```ruby
+foo_class = Class.new do
+  def double(num)
+    num*2
+  end
+end
+
+foo_instance = foo_class.new
+foo_instance.double(2)  # >> 4
+```
+
+Paradox: `Class` and `Object` are both classes. They're also objects.
+Chicken-and-egg problem? Ruby objects have a pointer to which class they're an
+instance of, and `Class has a self-reference`.
+
+Surprisingly enough: `Class.superclass` returns `Module` ("instance-less"
+classes).
+
+In Ruby, "class methods" are simply methods defined on a Class objects directly:
+```ruby
+class Foo
+end
+
+def Foo.classmethod
+  puts "I am a class method"
+end
+```
+
+Notation-wise:
+* `Foo#bar` refers to the instance method bar
+* `Foo.bar` or `Foo::bar` refers to the class method bar
+
+Constants in Ruby: they always start with a capital letter. If they're within a
+class, they can be referred to by name. If they need to be referred to from
+outside: `Foo::Constant` is the way to refer to them.
+
+Constants reassignment is discouraged through a warning, but modifying the
+underlying values contained in a constant doesn't produce a warning (need
+`freeze` to trutly freeze values!)
