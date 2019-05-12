@@ -198,3 +198,57 @@ outside: `Foo::Constant` is the way to refer to them.
 Constants reassignment is discouraged through a warning, but modifying the
 underlying values contained in a constant doesn't produce a warning (need
 `freeze` to trutly freeze values!)
+
+## Modules
+
+Modules and classes are similar. They're both groups of functionality. Classes
+have instances, modules do not. A class can only inherit from one parent, but
+can include more than one module.
+
+Shortcut methods:
+* `foo &&= bar` (similar to `||=`): expands to `foo = foo && bar`
+
+Modules should be **adjectives**. Classes **nouns**. That's because modules
+define behaviors and classes model entities.
+
+The base `Object` class mixes in the `Kernel` module. That's where most of
+Ruby's base methods are implemented (`respond_to`, `equal?`, etc). In other
+words:
+
+```
+>> class UserClass end
+>> UserClass.ancestors
+=> [UserClass, Object, Kernel, BasicObject]
+```
+
+Search path for method: class, mixed-in method, superclass, mixed-in method,
+etc...until `BasicObject` is reached.
+
+Paradox: `BasicObject` is an `Object`, `Object` is a `Class` and `Class` is an
+`Object`. Wow.
+
+`prepend MyModule` in a class does the same than `include MyModule`, except the
+module's methods take precedence over the class'.
+
+`extend MyModule` makes `MyModule`'s methods available as **class** methods
+(whereas `include` or `prepend` make methods available as instance methods)
+
+To call the next method in the call chain: `super` or `super(args)` (`super`
+with no args automatically forward call args)
+
+`myclass.method(:foo).super_method` returns `nil` or the next `foo` method in
+the call chain.
+
+A common pattern for program structure is to nest classes inside of modules for
+namespacing:
+```ruby
+module Tools
+  class Hammer
+  end
+  class Nail
+  end
+end
+
+>> Tools::Hammer.new
+=> #<Tools::Hammer:0x00007ffca916e178>
+```
