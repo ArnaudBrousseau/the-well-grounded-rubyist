@@ -252,3 +252,122 @@ end
 >> Tools::Hammer.new
 => #<Tools::Hammer:0x00007ffca916e178>
 ```
+
+## Scope and visibility
+
+Ruby has `self`, which is similar to JavaScript's `this`. The value varies depending on context:
+* at the top level, `self` is `main` (the buit-in top-level default object)
+* in a class, module, class method or instance method definition, `self` represents the class object, module object, class object or instance respectively
+
+Alternative syntax for class methods:
+```
+class C
+  class << self
+    def x
+    end
+    def y
+    end
+  end
+end
+```
+
+In Ruby, `self.method` can me shortened to `method`. **`self`** is the default
+receiver of messages.
+
+Class and instance object can both have "instance" variables:
+```ruby
+class Foo
+  attr_reader :bar
+  @bar = 42
+  def set_bar
+    @bar = 44
+  end
+end
+
+foo = Foo.new
+foo.bar
+=> nil
+foo.set_bar
+foo.bar
+=> 44
+```
+
+Globals:
+* they start with `$`
+* `$0` is the program filename, `$$` is the PID. If `require 'English'` is
+  inserted, more user-friendly names are assigned (`$PROGRAM_NAME`, `$PID`)
+
+A new scope is created for each `module`, `class` or `def` context. This resets local and constant vars:
+
+```ruby
+class O
+  x = 1
+  X = -1
+  class H
+    x = 2
+    X = -2
+    module M
+      x = 3
+      X = -3
+      module Y
+        x = 4
+        X = -4
+        def log
+          puts 'gad'
+        end
+        puts "{x} {X}"
+      end
+      puts "{x} {X}"
+    end
+    puts "{x} {X}"
+  end
+  puts "{x} {X}"
+end
+```
+
+Constants can be referred to with a relative path (`H::M::Y::X`) or absolute
+(`::O::H::Y::X`). `::` is equivalent to `/` for linux paths.
+
+Class variables are shared by a class and all of its instances AND all
+subclasses and all of their instances too. They're **class-hierarchy-scoped**.
+
+```ruby
+class P
+  @@val = 100
+end
+class C < P
+  @@val = 200
+end
+class P
+  puts @@val // prints 200
+end
+```
+
+Generally speaking it's best to avoid class variables and use instance variable
+of class objects (single `@`) such that these variables aren't shared with
+subclasses.
+
+Private methods can be declared:
+* with the function `private` on its own (all methods declared below will be
+  `private` unless `public` or `protected is called)
+* with the function `private` applied to specific functions (`private
+  :mymethod`) -- I personally prefer this pattern better since it's more
+  explicit which methods are made private.
+
+Quirk: private setters have to be called with exactly `self`.
+`self.private_setter = val` works, but `foo = self; foo.private_setter = val`
+doesn't!
+
+`protected` methods are only visible by other instances of the same class, or
+instances part of the class hierarchy.
+
+Interesting piece of trivia: defining a top-level method is like defining a
+private method on the `Object` class!
+
+`puts` and `print` are actually private methods of the `Kernel` module:
+
+```
+$ ruby -e 'p Kernel.private_instance_methods.sort'
+[:Array, :Complex, :Float, :Hash, :Integer, :Rational, :String, :URI, :__callee__, :__dir__, :__method__, :`, :abort, :at_exit, :autoload, :autoload?, :binding, :block_given?, :caller, :caller_locations, :catch, :eval, :exec, :exit, :exit!, :fail, :fork, :format, :gem, :gem_original_require, :gets, :global_variables, :initialize_clone, :initialize_copy, :initialize_dup, :iterator?, :lambda, :load, :local_variables, :loop, :open, :p, :pp, :print, :printf, :proc, :putc, :puts, :raise, :rand, :readline, :readlines, :require, :require_relative, :respond_to_missing?, :select, :set_trace_func, :sleep, :spawn, :sprintf, :srand, :syscall, :system, :test, :throw, :trace_var, :trap, :untrace_var, :warn]
+```
+
