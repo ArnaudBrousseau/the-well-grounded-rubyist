@@ -371,3 +371,99 @@ $ ruby -e 'p Kernel.private_instance_methods.sort'
 [:Array, :Complex, :Float, :Hash, :Integer, :Rational, :String, :URI, :__callee__, :__dir__, :__method__, :`, :abort, :at_exit, :autoload, :autoload?, :binding, :block_given?, :caller, :caller_locations, :catch, :eval, :exec, :exit, :exit!, :fail, :fork, :format, :gem, :gem_original_require, :gets, :global_variables, :initialize_clone, :initialize_copy, :initialize_dup, :iterator?, :lambda, :load, :local_variables, :loop, :open, :p, :pp, :print, :printf, :proc, :putc, :puts, :raise, :rand, :readline, :readlines, :require, :require_relative, :respond_to_missing?, :select, :set_trace_func, :sleep, :spawn, :sprintf, :srand, :syscall, :system, :test, :throw, :trace_var, :trap, :untrace_var, :warn]
 ```
 
+## Control flow
+
+Interesting fact: local vars inside of conditionals get initialized to `nil` even when the condition is unsatisfied:
+```ruby
+if false
+  x = 1
+end
+puts x  # outputs "nil"
+puts y  # throws an error!
+```
+
+Case statements can take multiple values. Kinda neat:
+```ruby
+case x
+when "1", 1, "one"
+  # do once
+when "2", 2, "two"
+  # do twice
+else
+  # default
+end
+```
+Interesting fact: `case`/`when` statements are syntactic sugar on top of the
+`===` method. Classes can override `===` explicitly if they decide to. If no
+explicit `===` is defined, `===` is interpreted as `==`.
+
+Case statements do not have to be about a variable! It's then equivalent to a
+standard `if`/`elsif`/.../`else` structure:
+```ruby
+case
+when it_is_sunny
+  # go to beach
+when it_pours
+  # stay inside & program
+else
+  # when it doubt play video games
+end
+```
+
+Loops in Ruby:
+* `loop { block }`
+* `break` / `next`
+* `while`
+* `until`
+* `for item in array; ....; end`
+
+Loops in Ruby have concise syntax: `n = n + 1 until n > 10`
+
+It's also possible to perform the first iteration before testing the condition by putting it after the `end` keyword:
+```ruby
+begin
+  puts "hi"
+end while false
+# ==> will print "hi" once
+```
+
+Method calls in Ruby have arguments and optional blocks if they can `yield`. The precedence is different between `do`/`end` syntax and `{...}`:
+```ruby
+puts [1,2,3].map { |n| n*10 }
+# ==> Parses as puts([1,2,3].map { |n| n*10 })
+
+puts [1,2,3].map do |n| n*10 end
+# ==> Parses as puts([1,2,3].map) do |n| n*10 end
+```
+Hence the general recommendation that 1-line blocks are kept with curly braces,
+and longer-than-one-line blocks are expressed with `do`/`end`.
+
+`each`'s return value is the original receiver when called with a block, or an
+`Enumerator` when called without. `map` returns a new set of items when called with a block, and also an `Enumerator` when called without one.
+
+Block variable scoping rules:
+* if there's no block variable name conflict, read-write access to outer
+  variables is granted from
+  within a block
+* otherwise (say, outer `x`, and we do `.each { |x| ... }`) block variables
+  "shadow" outer variables: outer vars will keep their value even upon
+  assignment in the block (no overwrite)
+
+It's possible to define **reserved names** for block variables!
+```ruby
+x = 100
+6.times do |i;x|
+   x = rand(0..100)
+   puts "Iteration: ##{i}, x is: #{x}"
+end
+puts "x is still #{x}"
+```
+But really: changing the var name is probably a best practice to avoid confusion!
+
+the method or block acts as an implicit `begin`.
+
+Various tips relating to error handling:
+* `rescue` blocks can be put at the end of methods or other blocks. The start of
+* To insert a debugger: `require 'pry'; binding.pry` is cool. Better version: `binding.irb`!
+* `&.` is the "safe navigation" operator. It only calls if the receiver is not
+  `nil`. This is handy to traverse object trees.
