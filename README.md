@@ -467,3 +467,88 @@ Various tips relating to error handling:
 * To insert a debugger: `require 'pry'; binding.pry` is cool. Better version: `binding.irb`!
 * `&.` is the "safe navigation" operator. It only calls if the receiver is not
   `nil`. This is handy to traverse object trees.
+* in Ruby, `ensure` is the equivalent of `finally` in other languages
+
+## Built-in Essentials
+
+Ruby lets users of the language use all of the "sugar" available to the core of the language:
+* Arithmetic operations: `+`, `-`, `*`, `/`, `%` (modulo), `**` (exponent), `|`, `&`, `^`
+* Get/set: `[]`, `[]=` (makes `x[y]`, `x[y] = z` "just work")
+* Append (`<<`)
+* Comparison: `==`, `===` (case equality), `<`, `>`, `<=`, `>=`
+* Spaceship! `<=>` (returns -1 if a < b, 0 if a = b, 1 if a > b)
+
+Holy crap you can even redefine unary operators! On built-ins! wat.
+```ruby
+class String
+  def +@
+    self.upcase
+  end
+end
+
++"hello"
+=> "HELLO"
+```
+Unary operators: `+`, `-`, `!`
+
+Convention in Ruby: method end in `!` if they're dangerous (mutate caller,
+mutate receiver, skip some safety checks or cleanup, etc). Example: `reverse`
+vs `reverse!`, `sort` vs `sort!`.
+
+Important to consider overriding:
+* `to_s` (used by `puts` and a lot of other use cases)
+* `inspect` (output in irb)
+
+`Struct`s are super useful:
+```ruby
+Transaction = Struct.new(:sender, :receiver, :amount, :fees)
+Transaction.new("Arnaud", "Ryan", 100, 1)
+```
+
+`*` operator to "unarray" or "destructure":
+```ruby
+def add(a, b); a+b; end;
+add(*[1, 2])
+=> 3
+```
+
+Suprisingly enough, `'hello'.to_i` does not error out. It's just `0`. And
+`'42wow'.to_i` is `42`. Wow. To get stricter behavior, `Integer` and `Float` are available:
+```ruby
+'nonsense'.to_i
+=> 0
+Integer('nonsense')
+=> ArgumentError (invalid value for Integer(): "nonsense")
+```
+
+Concept of "role playing": defining `to_str` and `to_ary` is a way to make ruby
+think your class can behave as an string or array. If these methods are defined
+they'll be called automatically when operators like `+` or `<<` (which expects
+a String) or `concat` (which expects an Array) are called on an object.
+
+In Ruby, `true` and `false` are objects. They have boolean values of `True` and
+`False` respectively. Every object in Ruby has a True boolean value except for
+`nil` and `false`.
+
+In Ruby, `equal?` is Object identity equality and isn't typically redefined.
+But `==` and `.eql?` are. `String` redefines `==` and `.eql?` to compare values
+for instance.
+
+For integers, `==` does implicit type conversion. `.eql?` doesn't:
+```Ruby
+5 == 5.0  # true
+5.eql? 5.0  # false
+```
+
+Pro-tip: including `Comparable` and defining the "spaceship" operator on a
+class gives full comparator compatibility for that class.
+
+Inpection:
+* `obj.methods.sort` lists methods, sorted
+* `obj.instance_methods` to list only instance methods
+* `obj.instance_methods(false` lists only methods defined on a class (excluding
+  ancestors
+* `obj.singleton_methods` to list only methods on that particular object
+* `private_methods`, `public_methods`, also works. Same for
+  `private_instance_methods`, `public_instance_methods`. Works, but rarely
+  used.
