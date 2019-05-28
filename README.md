@@ -552,3 +552,59 @@ Inpection:
 * `private_methods`, `public_methods`, also works. Same for
   `private_instance_methods`, `public_instance_methods`. Works, but rarely
   used.
+
+To produce strings without worrying about escaping characters:
+* `%q{...}` produces a single-quoted string
+* `%Q{...}`/`%{}` produces a double-quoted string
+
+To produce multi-line strings, use "heredoc"s:
+```ruby
+multi_line_str = <<EOM
+this text
+spans multiple
+lines.
+EOM
+```
+
+Bonus: "squiggly heredoc"s (`<<~EOM...EOM`) automatically strip leading
+whitespace. So handy. `<<-EOM...EOM` removes the requirement that the closing
+`EOM` is in a flush-left position.
+
+If a single-quoted heredoc is needed: `<<'EOM'...EOM` is the way to go.
+
+Kind of mind-bending: heredocs do not have to be the only thing in their line:
+```ruby
+>> array = ["foo", <<EOM, "baz"]
+bar
+EOM
+=> ["foo", "bar\n", "baz"]
+```
+
+String operations: `[]` support indexes, ranges, regex. Damn!
+
+`string.count` method is very versatile (char ranges, multiple args, regexes):
+`"abcdefghijklm".count("ag-m", "^l")` returns 7.
+
+Other handy string methods for left/right padding, stripping, even centering:
+`'hi'.center(20, '*')`
+
+Funny names: `chop` (removes last character), `chomp` (removes newline, or any
+specified substring if at the end)
+
+Tip: `to_i` optionally takes a base as argument: `"110".to_i(2)` (returns 6).
+`oct` and `hex` are also available (they're aliases for `to_i(8)` and `to_i(6)`
+respectively.
+
+About symbols:
+* `'some string'.to_sym` is the same than `'some string'.intern`
+* symbols are more like integers than strings. They're immutable. The same
+  symbol share the same object ID
+* variable names, method names, class names are symbols internally
+* `Symbol.all_symbols` return all symbols. It's grep-able: `Symbol.all_symbols.grep(/foo/)`
+
+Number gotchas:
+* numbers leading with zeros are intepreted as octal based: `012 == 10`. wat.
+
+Pro-tip: `ri` (CLI) (e.g. `$ ri DateTime`). That's the Ruby equivalent of `man`.
+
+
