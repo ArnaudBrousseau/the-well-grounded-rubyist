@@ -607,4 +607,95 @@ Number gotchas:
 
 Pro-tip: `ri` (CLI) (e.g. `$ ri DateTime`). That's the Ruby equivalent of `man`.
 
+Arrays can be initialized with code blocks:
+```ruby
+Array.new(5) { |i| i*i }
+# => [0, 1, 4, 9, 16]
+```
 
+In Ruby, `Array(obj)` calls `obj.to_ary` or `obj.to_a` if available. It's
+rarely used. Some common ways to create arrays in Ruby:
+* `%w[one two three]`
+* `%W[one #{1 + 1} #{1 + 1 + 1}]
+* `%i[one two]`, %I[one #{1 +1}]
+
+`try_convert` is the general mechanism through which `Array`, `Hash`, `IO` or
+`Regexp` work. `try_convert` relies on `to_ary`, `to_hash`, `to_io` and
+`to_regexp` (resp.).
+
+Fun-fact: in Ruby, `a[0] = 1` is sugar for `a.[]=(0, 1)`, and `a[0]` is sugar
+for `a.[](0)`.
+
+Range access: `a[2,4]`, `a[2..4]` (contiguous values) or `a.values_at(2,4)`
+(non-contiguous values).
+
+Other useful array methods:
+* `dig` (to access nested indices)
+* `unshift` (to prepend items), `shift` (pop from left)
+* `push`/`<<` (append), `pop` (standard pop)
+* `.flatten()`
+* `.uniq()`
+* `arr * '-'` is equivalent to `arr.join('-')`
+* `compact` (removes `nil`s)
+* `.sample(2)` (takes 2 sample elements from an array)
+
+Hashes:
+* `Hash.new(2)` creates a hash with a default value (for missing keys) of `2`
+* `Hash["foo", 1, "bar", 2]` creates a hash with 2 elements. So does `Hash[["foo", 1], ["bar", 2]]`
+* `dig` (to get deep keys), `compact` (removes nil values), and `values_at` also works for hashes!
+* `fetch`/`store` are getter/setters, equivalent to `[]` and `[]=`. They accept blocks to transform the keys (
+
+Recreating Python's `defaultdict`:
+```ruby
+# Values are initialized to 0 the first time they're accessed
+defaultdict = Hash.new { |hash, key| hash[key] = 0 }
+```
+
+Hashes support `select` and `reject` to filter them arbitrarily.
+
+Hashes are great way to emulate Python kwargs:
+```ruby
+def foo(a, b, info)
+  puts a + b
+  puts info.keys
+end
+
+foo(1, 2, three: 3, four: 4)
+=> 3
+=> [three, four]
+```
+
+Better though: real named keyword args, with defaults
+```
+def sum(a:, b:2)
+  a + b
+end
+
+sum(a: 1)
+=> 3
+
+sum(a: 1, b: 5)
+=> 6
+```
+
+It's also possible to sponge up extra kwargs:
+```
+def foo(a:, b: 1, **kwargs)
+  puts kwargs
+end
+
+foo(a: 1, c: 3, d: 4)
+=> {c: 3, d: 4}
+```
+
+Ranges:
+* can be inclusive (`1..100`, aka `[1, 100]`) or exclusive (`1...100`, aka `[1, 100[`)
+* `begin`, `end` and `exclude_end?` are convenient to check bounds
+* `include?` and `cover?` for membership test (e.g. `(1...100).cover?(50)`)
+
+Sets:
+* not built-in, needs `require 'set'`
+* `Set.new(array)` is canonical
+* `Set.add?` adds to the set and returns `nil` if the key was already present. Handy
+* sets support the usual union/intersection/difference/xor through `+`/`&`/`-`/`^`
+* support for `subset?`/`superset?` which is neat
