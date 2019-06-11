@@ -699,3 +699,86 @@ Sets:
 * `Set.add?` adds to the set and returns `nil` if the key was already present. Handy
 * sets support the usual union/intersection/difference/xor through `+`/`&`/`-`/`^`
 * support for `subset?`/`superset?` which is neat
+
+Including `Enumerable` and defining `each` lets a class enjoy methods defined
+in this method, defined in terms of `each`: `find`, `any?`, `select`, `reject`, etc.
+
+Other neat `Enumerable` methods:
+* `grep` (selects based on `===`, takes in a block
+* `group_by` (splits a collection into a hash)
+* `partition` (splits a collection in two arrays)
+* `min`/`max`/`minmax` (and `min_by`, `max_by`, `minmax_by`)
+* `each_with_index` (Python's `enumerate`): deprecated in favor of
+  `each.with_index` (more idiomatic). Tip: `with_index(4)` enumerates indices
+  starting from 4. Handy to handle collections starting with 1 vs 0 when
+  enumerating arrays.
+* `each_cons`: handy for windowing algorithms (`[1, 2, 3].each_cons(2)` results in `[1, 2], [2, 3]`)
+* `slice_when { |i,j| ... }` is also super handy for iterating over an array efficiently
+* `inject` to perform reductions. Example: `somme = -> (a) { a.inject(0) {
+  |acc, n| acc + n } }; somme.call([2,2])`. Pro-level: `[2,3,4,5].inject(:+)`
+  also works.
+* The queen of all iteration methods, `map`. Ruby enable symbol blocks such as
+  `name.map(&:upcase)` (remember `bar(&quux)` is the generic syntax to pass
+  `quux` as a block argument to `bar`)
+
+String enumerations: `each_byte`, `each_char`, `each_codepoint`, `each_line`.
+To get arrays directly `bytes`, `chars`, `codepoints`, `lines`.
+Niche feature: the value of `$/` drives what Ruby thinks of as a line. It
+defaults to `\n`, but can be changed:
+```ruby
+>> $/ = '.'
+>> 'what.is.going.on?'.each_line { |l| p l }
+'what.'
+'is.'
+'going.'
+'on?'
+```
+I don't really see a reason to do this, ever. But it's kinda quirky and cute.
+
+Sorting: in order for a collection to become sortable (`.sort`), the class of
+its items has to implement the "spaceship" operator, to define ordering. Sort order is also overridable on the fly, with a block:
+```
+>> [67, 48, 4, 38].sort
+=> [4, 38, 48, 67]
+>> [67, 48, 4, 38].sort { |a,b| b<=>a }
+=> [67, 48, 38, 4]
+```
+
+`sort_by` is neat to sort collections of hashes: `[{foo: 2}, {foo: -1}, {foo:
+3}].sort_by { |i| i[:foo] }` or `[{foo: 2}, {foo: -1}, {foo:
+3}].sort_by(&:values)`.
+
+Enumerators are object which produce values through a yielder:
+```ruby
+e = Enumerator.new do |y|
+  y << 1
+  y << 2
+  y << 42
+end
+
+>> e.each { |i| p i }
+1
+2
+42
+
+`some_obj.enum_for(method, arg1, arg2,...argN)` creates an Enumerator from an
+object's method, such that it yields its values through one of its methods.
+Default is, of course, `each`. But we can do:
+
+```ruby
+>> e = ['foo', 'bar', 'baz'].enum_for(:each_cons, 2)
+=> #<Enumerator: ["foo", "bar", "baz"]:each_cons(2)>
+>> e.to_a
+=> [["foo", "bar"], ["bar", "baz"]]
+```
+
+Called without block args, most iteration methods return Enumerators (`each`, `each_byte`, `reverse_each`, etc)
+
+Enumerators are a neat way to proxy access to a collection, such that the
+collection is protected and guaranteed read-only: `[1,2,3].pop` works; `[1,2,3].enum_for.pop` doesn't.
+
+Enumerators have state! `[1,2,3].each.next.next` & `[1,2,3].next.next.rewind` work as you would expect.
+
+Lazy enumerators:
+* `(1..Float::INFINITY).select { |n| n % 3 == 0 }.first(10)` => hangs forever
+* `(1..Float::INFINITY).lazy.select { |n| n % 3 == 0 }.first(10)` => no problem
