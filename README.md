@@ -782,3 +782,24 @@ Enumerators have state! `[1,2,3].each.next.next` & `[1,2,3].next.next.rewind` wo
 Lazy enumerators:
 * `(1..Float::INFINITY).select { |n| n % 3 == 0 }.first(10)` => hangs forever
 * `(1..Float::INFINITY).lazy.select { |n| n % 3 == 0 }.first(10)` => no problem
+
+Regex:
+* defined with `/.../` or `%r{...}`
+* to find out if there's a match: `str.match?(regex)`, `regex.match?(str)`, `str =~ regex`, `regex =~ str`, `regex === str` all work
+* for complex regex, always use named capture groups: `(?<name>...)`, and retrieve with `named_captures[:name]`
+* in addition to returning `MatchData` objects, Ruby populates the globals `$~`
+  with the `MatchData` object or `nil`, and `$1`, `$2`, etc with each capture
+  groups in the case of a match.
+* To switch to non-greedy operators: add `?`. `'1234'.match(/\d+?/)[0]` returns
+  `'1'`, whereas `'1234'.match(/\d+/)[0]` returns `'1234'`
+* Ruby regex support is very complete, including: positive lookahead
+  (`/(?=...)/`), negative lookahead (`/(?!...)/`), positive lookbehind
+  (`/(?<=...)/`), negative lookbehind (`/(?<!.../`), ghost capture groups
+  (`/(?:...)/`)
+* Hail mary of regex: conditional matches: `/(a)?(?(1)b|c)/` matches ab, c, 5c. Don't ever use please?
+* Trivia fact: Ruby's regex engine's name is "Onigmo"
+* Modifiers: `i` (case insensitive), `m` (multiple lines), `x` (makes regex
+  indifferent to whitespace, easier to structure/add comments to long regexes)
+
+Methods using Regexes: `String#scan`, `Array#find_all`, `String#split`,
+`String#sub`, `String#gsub` and `Enumerable#grep`.
