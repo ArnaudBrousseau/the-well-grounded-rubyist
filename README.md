@@ -723,8 +723,8 @@ Other neat `Enumerable` methods:
 
 String enumerations: `each_byte`, `each_char`, `each_codepoint`, `each_line`.
 To get arrays directly `bytes`, `chars`, `codepoints`, `lines`.
-Niche feature: the value of `$/` drives what Ruby thinks of as a line. It
-defaults to `\n`, but can be changed:
+Niche feature: the value of `$/` ("global input record separator) drives what
+Ruby thinks of as a line. It defaults to `\n`, but can be changed:
 ```ruby
 >> $/ = '.'
 >> 'what.is.going.on?'.each_line { |l| p l }
@@ -803,3 +803,33 @@ Regex:
 
 Methods using Regexes: `String#scan`, `Array#find_all`, `String#split`,
 `String#sub`, `String#gsub` and `Enumerable#grep`.
+
+I/O
+* `STDIN`, `STDOUT` and `STDERR` are constants
+* `$stdin`/`$stdout`/`$stderr` are globals pointing to them. Globals can be
+  reassigned to that raw `puts`/`gets`/errors go to non-standard IO streams
+
+`File` objects:
+* `read` (get everything), `readlines` (get all lines) -- also available as class methods
+* `seek`, `rewind` (standard stuff)
+* `gets` (get next line), `getc` (get next character), `getbyte` (get next byte)
+* `readline`, `readchar`, `readbyte` (same than above, but do not error if end of file is reached)
+* `puts`, `write` for writing to files
+* `File.open(...) do |f| ... end` takes care of closing file descriptors
+* `File` objects are enumerables and yield line-by-line (`File.new(...).each { |line| ... }`)
+* `File` has a bunch of boolean methods to determine attributes: `empty?`,
+  `exist?`, `readable?`, etc. This can also be done with `test ?e /tmp` (but
+  that's arguably more obscure since it uses `Kernel#test` under the cover)
+* `File` objects have a `stat` attribute with lots of info in it
+
+`Dir` objects:
+* `Dir.new(...).entries`
+* `dir['*.txt']` or `dir.glob('*.txt')`
+
+Neat module to perform file/directory operations: `FileUtils`. Has methods like
+`cp`, `ln_s`, `rm_rf`, `mv`, etc. Also has dry-run and no-write options.
+
+`Pathname` is a module to manipulate paths (get directory, extensions, concatenate paths together, go one level up/down)
+
+`StringIO` is what you'd expect: a module to give strings a File-like interface
+(makes it easier to test code which expects files)
