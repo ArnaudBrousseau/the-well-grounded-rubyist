@@ -833,3 +833,91 @@ Neat module to perform file/directory operations: `FileUtils`. Has methods like
 
 `StringIO` is what you'd expect: a module to give strings a File-like interface
 (makes it easier to test code which expects files)
+
+Objects in Ruby have two classes:
+* their standard class (`.class`)
+* their *singleton* class (`.singleton_class`)
+
+To add methods to an object's singleton class:
+```ruby
+def obj.foo
+  puts 'first way'
+end
+
+class << obj
+  def foo
+    puts 'second way'
+  end
+end
+
+module AddedMethod
+  def foo
+    puts 'third/fourth way'
+  end
+end
+class Foo
+  extend AddedMethod
+end
+
+class Foo
+end
+Foo.extend(AddedMethod)
+```
+
+`class << obj` should be read as "open up the single class of `obj`". Hence, when you see...
+```ruby
+class Foo
+  class << self
+    def foo
+      puts 'I am a method'
+    end
+  end
+end
+```
+...it should now be obvious that `class << self` opens up a block for
+definitions of singleton methods of `self`, which is the class object Foo.
+
+This block can also include or prepend modules:
+```ruby
+class Foo
+  class << self
+    include Enumerable
+    def each
+      yield 1
+      yield 2
+      yield 3
+    end
+  end
+end
+```
+
+Gotcha: singleton classes of `Class` objects are inherited by children:
+```
+class Foo
+  class << self
+    def foo_method
+      puts 'hi from foo'
+    end
+  end
+end
+
+class Bar < Foo
+end
+
+# totally works!
+Bar.foo_method  # outputs 'hi from foo'
+```
+
+Modifying core classes:
+* Never okay to redefine methods
+* Can be okay to add methods or optional args which do not break existing code
+* `extend` is the safest way to override core methods (on a object-by-object basis)
+* `refine` (which takes a block) and `using` (which uses the refinement in the
+  current scope only) are the preferred way to scope core classes overrides
+
+`BasicObject` can be useful to create classes which must behave in singular
+ways, because `BasicObject` doesn't have much attached to it. No
+`method_missing`, no `methods`, no `size`, etc.
+
+A lot of the magic happens by implementing `method_missing`. The fewer methods
+defined on the class, the more `method_missing` gets to intercept!
