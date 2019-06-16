@@ -921,3 +921,97 @@ ways, because `BasicObject` doesn't have much attached to it. No
 
 A lot of the magic happens by implementing `method_missing`. The fewer methods
 defined on the class, the more `method_missing` gets to intercept!
+
+## Procs, Lambdas, and methods-as-object
+
+`Proc`s are created with `Proc.new {...}` or `proc {...}
+
+Procs can be passed as blocks with `obj.method(&a_proc)`, and blocks can be
+turned into procs by defining `def method(a, b, &p)` (any block passed to
+method will be turned into a proc and passed as an arg transparently).
+
+The notation `&p` actually means `p.to_proc`. So,
+`['hi','there'].map(&:capitalize)` is the same as `['hi','there'].map { |i|
+:capitalize.to_proc.call(i) }`
+
+Upon their creation procs create closures (callables are bundled with the
+context they're created with).
+
+What about lambdas? Well, they're procs too! So, what's different between a lambda and a proc?
+* lambdas care about arity (number of args), and error out if you don't pass as many as they expect
+* `return` from inside the lambda exits the lambda. Whereas `return` from inside a proc exits from whatever context the proc is called from.
+
+Lambdas have a literal constructor: `square = -> (x) {x*x}`
+
+Ruby lets you grab methods off of a class or object so that it can be passed
+around with its context: `method = obj.method[:foo]`. By default, `method` is
+bound to `obj`, but it's possible to call `unbind` and `bind` to re-bind to
+another target. There's also `FooClass.instance_method[:foo]` which returns an
+unbound method, directly.
+
+Call mechanisms for a callable object (proc, lambda, detached method):
+* `callable.call(arg1, arg2)`
+* `callable[arg1, arg2]`
+* `callable.(arg1, arg2)`
+
+Code evaluation: `eval(string_of_code, binding)`. `binding` is a object, instance of `Binding`, which encapsulates the current context. The function `binding` returns the current context:
+```ruby
+def get_binding
+  bar = 2
+  b = binding()
+  return b
+end
+
+# outputs "bar: 2"
+eval('puts "bar: #{bar}"', get_binding())
+```
+
+Less evil than `eval`: `instance_eval`, with a block:
+```ruby
+class C
+  def initialize
+    @protected = 'secret'
+  end
+end
+c = C.new
+# prints "secret"
+c.instance_eval { puts @protected }
+```
+
+There's also `class_eval` to evaluate a block or a string of code in the
+context of class definition.
+
+## Concurrency
+
+Creating `Thread`s is easy:
+```ruby
+t = Thread.new do
+ # code
+end
+t.join # wait until thread finishes
+```
+They work like you'd expect. They have threadlocal vars with `Thread#current`. They can be started (`join`, `run`), stopped (`kill`), etc.
+
+
+Another concurrency construct in Ruby is `Fiber`s. They work like coroutines:
+```ruby
+f = Fiber.new do
+  puts 'hello'
+  Fiber.yield
+  puts 'how'
+  Fiber.yield
+  puts 'are'
+  Fiber.yield
+  puts 'you'
+  Fiber.yield
+end
+f.resume # hello
+f.resume # how
+f.resume # are
+f.resume # you
+```
+Interesting fact: this is what Enumerators are built on under the hood.
+
+To call to shell commands: `system('...')`, or `\`...\``, or `%x{...}`. `exec`
+replaces the program with a shell (not so good!), and `open`/`popen3` are
+low-level library used to do complex file descriptor manipulations.
