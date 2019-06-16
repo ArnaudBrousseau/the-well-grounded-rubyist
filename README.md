@@ -58,6 +58,14 @@ Rounding floats:
     >> puts "#{num} rounded is #{"%.2f" % num}"
     10.12
 
+Accessing the last computed value in IRB: possible with the special `_` variable:
+
+    $ irb
+    >> 1+1
+    => 2
+    >> result = _
+    => 2
+
 
 ## Objects
 
@@ -1015,3 +1023,24 @@ Interesting fact: this is what Enumerators are built on under the hood.
 To call to shell commands: `system('...')`, or `\`...\``, or `%x{...}`. `exec`
 replaces the program with a shell (not so good!), and `open`/`popen3` are
 low-level library used to do complex file descriptor manipulations.
+
+Ruby has a few runtime hooks available for metaprogramming (probably not useful unless you're writing a library!):
+* `method_missing`, to dynamically respond to methods
+* `respond_to_missing?`, such that `respond_to?` "sees" the metaprogrammed methods
+* `self.const_missing` lets a class set defaults for constants and pretend they
+  exist. Not sure it's such a good idea...
+* `def self.included(cl)` (and `prepended`) lets a module run a callback
+  whenever it's included into a class. This lets you do some tweaking to each
+  class (defining instance methods, initializing some state, etc)
+* `extended(obj)` also works, and gets called when an object extends a module
+* `inherited` is a callback executed when a given class is subclassed. This
+  does not work for singleton classes, only standard classes!
+* `method_added` and `singleton_method_added` are callbacks ran upon method definition
+
+These callbacks are useful to write testing frameworks for instance: `inherited` lets you know which classes are test classes, `method_added` lets you intercept `setup`, `teardown` and `test_*` methods.
+
+Ruby has `local_variables`, `global_variables` and `instance_variables`
+available to let programs inspect their runtimes.
+
+To inspect the current stack: `caller` is a function returning an array of
+callsites. It can be called from anywhere.
