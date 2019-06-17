@@ -1044,3 +1044,25 @@ available to let programs inspect their runtimes.
 
 To inspect the current stack: `caller` is a function returning an array of
 callsites. It can be called from anywhere.
+
+Functional programming in Ruby:
+* `Object#freeze` and `Object#frozen?` are ways to make objects immutable
+* `# frozen_string_literal: true` at the top of a file auto-freezes all string
+  literals in that file.
+* `curry` returns a curried function: `add = -> (a, b, c) { a + b + c };
+  curried = add.curry; curried[2][4][8]`. `curry` takes an optional argument to
+  indicate the arity at which it should evaluate (for instance: `add4 = ->
+  (*nums) { nums.reduce(:+) }.curry(4)`, then `add4[1][2][3][4]`)
+* tail recursive functions: if the last instruction of a function is a call to itself.
+
+Ruby has `itself` as an "identity" function, and `yield_self` (which is the same than `tap`, but returns the result of the block passed in:
+
+```ruby
+"Hello".tap { |s| s.upcase }
+=> "Hello"
+
+"Hello".yield_self { |s| s.upcase }
+=> "HELLO"
+```
+
+That's all folks!
