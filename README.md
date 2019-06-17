@@ -1,5 +1,7 @@
 # The Well-Grounded Rubyist
-I'm reading this, and keeping track of the things I'm learning along the way.
+I'm reading [this
+book](https://www.amazon.com/Well-Grounded-Rubyist-David-Black/dp/1617295213)
+and keeping track of the things I'm learning along the way with this repo.
 
 ## `load` vs `require`
 
@@ -23,7 +25,7 @@ Same, but only remote:
 
     $ gem install -r bundler
 
-## Misc Tips
+## Productivity Tips
 
 Syntax check:
 
@@ -95,7 +97,7 @@ To list object methods:
 
     >> puts obj.methods.sort
 
-Arguments:
+## Arguments
 * `(*a)` accepts 0 or more args, `(a, b, *c)` accepts 2 or more. `a` and `c`, respectively, will be arrays.
 * `(a, *b, c)` is possible. `(1, 2, 3, 4)` results in `a=1`, `b=[2,3]` and `c=4`. Pretty neat.
 * When default values are in the mix `(a=1, *b, c)`, they win over the generic arg. A call with `(11, 22)` will result in `a=11`, `b=[]`, `c=22`.
@@ -117,6 +119,29 @@ inside of the array!
 >> arr[0].replace("pwnd")
 >> arr
 => ["pwnd", "two", "three"]
+```
+
+Ruby has real keyword arguments (!!):
+```
+def sum(a:, b:2)
+  a + b
+end
+
+sum(a: 1)
+=> 3
+
+sum(a: 1, b: 5)
+=> 6
+```
+
+It's also possible to sponge up extra kwargs with them
+```
+def foo(a:, b: 1, **kwargs)
+  puts kwargs
+end
+
+foo(a: 1, c: 3, d: 4)
+=> {c: 3, d: 4}
 ```
 
 ## Classes
@@ -435,7 +460,8 @@ end while false
 # ==> will print "hi" once
 ```
 
-Method calls in Ruby have arguments and optional blocks if they can `yield`. The precedence is different between `do`/`end` syntax and `{...}`:
+Method calls in Ruby have arguments and optional blocks if they can `yield`.
+The precedence is different between `do`/`end` syntax and `{...}`:
 ```ruby
 puts [1,2,3].map { |n| n*10 }
 # ==> Parses as puts([1,2,3].map { |n| n*10 })
@@ -551,15 +577,7 @@ For integers, `==` does implicit type conversion. `.eql?` doesn't:
 Pro-tip: including `Comparable` and defining the "spaceship" operator on a
 class gives full comparator compatibility for that class.
 
-Inpection:
-* `obj.methods.sort` lists methods, sorted
-* `obj.instance_methods` to list only instance methods
-* `obj.instance_methods(false` lists only methods defined on a class (excluding
-  ancestors
-* `obj.singleton_methods` to list only methods on that particular object
-* `private_methods`, `public_methods`, also works. Same for
-  `private_instance_methods`, `public_instance_methods`. Works, but rarely
-  used.
+## Strings, symbols and heredocs
 
 To produce strings without worrying about escaping characters:
 * `%q{...}` produces a single-quoted string
@@ -615,6 +633,8 @@ Number gotchas:
 
 Pro-tip: `ri` (CLI) (e.g. `$ ri DateTime`). That's the Ruby equivalent of `man`.
 
+## Arrays
+
 Arrays can be initialized with code blocks:
 ```ruby
 Array.new(5) { |i| i*i }
@@ -647,7 +667,8 @@ Other useful array methods:
 * `compact` (removes `nil`s)
 * `.sample(2)` (takes 2 sample elements from an array)
 
-Hashes:
+## Hashes
+
 * `Hash.new(2)` creates a hash with a default value (for missing keys) of `2`
 * `Hash["foo", 1, "bar", 2]` creates a hash with 2 elements. So does `Hash[["foo", 1], ["bar", 2]]`
 * `dig` (to get deep keys), `compact` (removes nil values), and `values_at` also works for hashes!
@@ -673,41 +694,21 @@ foo(1, 2, three: 3, four: 4)
 => [three, four]
 ```
 
-Better though: real named keyword args, with defaults
-```
-def sum(a:, b:2)
-  a + b
-end
+Better though: real named keyword args, with defaults! (see "Arguments" above)
 
-sum(a: 1)
-=> 3
-
-sum(a: 1, b: 5)
-=> 6
-```
-
-It's also possible to sponge up extra kwargs:
-```
-def foo(a:, b: 1, **kwargs)
-  puts kwargs
-end
-
-foo(a: 1, c: 3, d: 4)
-=> {c: 3, d: 4}
-```
-
-Ranges:
+## Ranges
 * can be inclusive (`1..100`, aka `[1, 100]`) or exclusive (`1...100`, aka `[1, 100[`)
 * `begin`, `end` and `exclude_end?` are convenient to check bounds
 * `include?` and `cover?` for membership test (e.g. `(1...100).cover?(50)`)
 
-Sets:
+## Sets
 * not built-in, needs `require 'set'`
 * `Set.new(array)` is canonical
 * `Set.add?` adds to the set and returns `nil` if the key was already present. Handy
 * sets support the usual union/intersection/difference/xor through `+`/`&`/`-`/`^`
 * support for `subset?`/`superset?` which is neat
 
+## The magic of `Enumerable`s
 Including `Enumerable` and defining `each` lets a class enjoy methods defined
 in this method, defined in terms of `each`: `find`, `any?`, `select`, `reject`, etc.
 
@@ -743,8 +744,10 @@ Ruby thinks of as a line. It defaults to `\n`, but can be changed:
 ```
 I don't really see a reason to do this, ever. But it's kinda quirky and cute.
 
-Sorting: in order for a collection to become sortable (`.sort`), the class of
-its items has to implement the "spaceship" operator, to define ordering. Sort order is also overridable on the fly, with a block:
+## Sorting
+In order for a collection to become sortable (`.sort`), the class of its items
+has to implement the "spaceship" operator, to define ordering. Sort order is
+also overridable on the fly, with a block:
 ```
 >> [67, 48, 4, 38].sort
 => [4, 38, 48, 67]
@@ -756,6 +759,7 @@ its items has to implement the "spaceship" operator, to define ordering. Sort or
 3}].sort_by { |i| i[:foo] }` or `[{foo: 2}, {foo: -1}, {foo:
 3}].sort_by(&:values)`.
 
+## Enumerators
 Enumerators are object which produce values through a yielder:
 ```ruby
 e = Enumerator.new do |y|
@@ -791,7 +795,7 @@ Lazy enumerators:
 * `(1..Float::INFINITY).select { |n| n % 3 == 0 }.first(10)` => hangs forever
 * `(1..Float::INFINITY).lazy.select { |n| n % 3 == 0 }.first(10)` => no problem
 
-Regex:
+## Regexes
 * defined with `/.../` or `%r{...}`
 * to find out if there's a match: `str.match?(regex)`, `regex.match?(str)`, `str =~ regex`, `regex =~ str`, `regex === str` all work
 * for complex regex, always use named capture groups: `(?<name>...)`, and retrieve with `named_captures[:name]`
@@ -812,7 +816,8 @@ Regex:
 Methods using Regexes: `String#scan`, `Array#find_all`, `String#split`,
 `String#sub`, `String#gsub` and `Enumerable#grep`.
 
-I/O
+## I/O, files, directories
+I/O:
 * `STDIN`, `STDOUT` and `STDERR` are constants
 * `$stdin`/`$stdout`/`$stderr` are globals pointing to them. Globals can be
   reassigned to that raw `puts`/`gets`/errors go to non-standard IO streams
@@ -841,6 +846,8 @@ Neat module to perform file/directory operations: `FileUtils`. Has methods like
 
 `StringIO` is what you'd expect: a module to give strings a File-like interface
 (makes it easier to test code which expects files)
+
+## Singleton classes
 
 Objects in Ruby have two classes:
 * their standard class (`.class`)
@@ -916,8 +923,8 @@ end
 Bar.foo_method  # outputs 'hi from foo'
 ```
 
-Modifying core classes:
-* Never okay to redefine methods
+## The evil of modifying core classes
+* Do not do it! It's never okay to redefine core methods
 * Can be okay to add methods or optional args which do not break existing code
 * `extend` is the safest way to override core methods (on a object-by-object basis)
 * `refine` (which takes a block) and `using` (which uses the refinement in the
@@ -962,7 +969,10 @@ Call mechanisms for a callable object (proc, lambda, detached method):
 * `callable[arg1, arg2]`
 * `callable.(arg1, arg2)`
 
-Code evaluation: `eval(string_of_code, binding)`. `binding` is a object, instance of `Binding`, which encapsulates the current context. The function `binding` returns the current context:
+## Code evaluation
+`eval(string_of_code, binding)` -- `binding` is a object, instance of
+`Binding`, which encapsulates the current context. The function `binding`
+returns the current context:
 ```ruby
 def get_binding
   bar = 2
@@ -1024,6 +1034,17 @@ To call to shell commands: `system('...')`, or `\`...\``, or `%x{...}`. `exec`
 replaces the program with a shell (not so good!), and `open`/`popen3` are
 low-level library used to do complex file descriptor manipulations.
 
+## Runtime Inspection
+
+* `obj.methods.sort` lists methods, sorted
+* `obj.instance_methods` to list only instance methods
+* `obj.instance_methods(false` lists only methods defined on a class (excluding
+  ancestors
+* `obj.singleton_methods` to list only methods on that particular object
+* `private_methods`, `public_methods`, also works. Same for
+  `private_instance_methods`, `public_instance_methods`. Works, but rarely
+  used.
+
 Ruby has a few runtime hooks available for metaprogramming (probably not useful unless you're writing a library!):
 * `method_missing`, to dynamically respond to methods
 * `respond_to_missing?`, such that `respond_to?` "sees" the metaprogrammed methods
@@ -1037,7 +1058,9 @@ Ruby has a few runtime hooks available for metaprogramming (probably not useful 
   does not work for singleton classes, only standard classes!
 * `method_added` and `singleton_method_added` are callbacks ran upon method definition
 
-These callbacks are useful to write testing frameworks for instance: `inherited` lets you know which classes are test classes, `method_added` lets you intercept `setup`, `teardown` and `test_*` methods.
+These callbacks are useful to write testing frameworks for instance:
+`inherited` lets you know which classes are test classes, `method_added` lets
+you intercept `setup`, `teardown` and `test_*` methods.
 
 Ruby has `local_variables`, `global_variables` and `instance_variables`
 available to let programs inspect their runtimes.
@@ -1045,7 +1068,7 @@ available to let programs inspect their runtimes.
 To inspect the current stack: `caller` is a function returning an array of
 callsites. It can be called from anywhere.
 
-Functional programming in Ruby:
+## Functional programming in Ruby
 * `Object#freeze` and `Object#frozen?` are ways to make objects immutable
 * `# frozen_string_literal: true` at the top of a file auto-freezes all string
   literals in that file.
